@@ -146,8 +146,8 @@ function createCube() {
         //void gl.texImage2D(target, level, internalformat, format, type, HTMLImageElement? pixels);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, cube.texture1.image);
 
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
 
         ready = true;
@@ -240,6 +240,8 @@ function start() {
     var viewMatrixLocation = gl.getUniformLocation(cube.shaderProgram, "viewMatrix");
     var projectionMatrixLocation = gl.getUniformLocation(cube.shaderProgram, "projectionMatrix");
 
+    var camera = {position: mat2.vec3.fromValues(0,0,0), direction:mat2.vec3.fromValues(0,0,-1) , pitch:0, yaw : -1*Math.PI/2.0};
+
     var angle = 0;
 
     function runRenderLoop() {
@@ -250,6 +252,12 @@ function start() {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.enable(gl.DEPTH_TEST);
 
+        moveCamera(camera);
+        var target = mat2.vec3.create();
+        mat2.vec3.add(target, camera.position, camera.direction);
+
+        mat2.mat4.lookAt(viewMatrix, camera.position, target, mat2.vec3.fromValues(0,1,0));
+
         mat2.mat4.identity(cube.modelMatrix);
 
         mat2.mat4.translate(cube.modelMatrix, cube.modelMatrix, [4, 0, -7]);
@@ -257,7 +265,7 @@ function start() {
         mat2.mat4.rotateX(cube.modelMatrix, cube.modelMatrix, .25);
         mat2.mat4.scale(cube.modelMatrix, cube.modelMatrix, mat2.vec3.fromValues(2,2,2));
 
-        angle += .1;
+        // angle += .1;
 
         gl.uniformMatrix4fv(cube.modelMatrixLocation, false, cube.modelMatrix);
         gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix);
@@ -320,4 +328,107 @@ if(!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
 }
 return shader; 
 
+}
+
+var isWPressed = false;
+var isSPressed = false;
+var isAPressed = false;
+var isDPressed = false;
+var isGPressed = false;
+var isJPressed = false;
+var isYPressed = false;
+var isHPressed = false;
+
+document.addEventListener("keydown", function (event) {
+    if (event.key == 'w') {
+        isWPressed = true;
+    }
+    if (event.key == 's') {
+        isSPressed = true;
+    }
+    if (event.key == 'a') {
+        isAPressed = true;
+    }
+    if (event.key == 'd') {
+        isDPressed = true;
+    }
+    if (event.key == 'g') {
+        isGPressed = true;
+    }
+    if (event.key == 'j') {
+        isJPressed = true;
+    }
+    if (event.key == 'y') {
+        isYPressed = true;
+    } if (event.key == 'h') {
+        isHPressed = true;
+    }
+}
+);
+
+document.addEventListener("keyup", function (event) {
+    if (event.key == 'w') {
+        isWPressed = false;
+    }
+    if (event.key == 's') {
+        isSPressed = false;
+    }
+    if (event.key == 'a') {
+        isAPressed = false;
+    }
+    if (event.key == 'd') {
+        isDPressed = false;
+    }
+    if (event.key == 'j') {
+        isJPressed = false;
+    }
+    if (event.key == 'g') {
+        isGPressed = false;
+    }
+    if (event.key == 'y') {
+        isYPressed = false;
+    }
+    if (event.key == 'h') {
+        isHPressed = false;
+    }
+});
+
+function moveCamera(camera) {
+    camera.direction[0] = Math.cos(camera.pitch) * Math.cos(camera.yaw);
+    camera.direction[1] = Math.sin(camera.pitch);
+    camera.direction[2] = Math.cos(camera.pitch) * Math.sin(camera.yaw);
+
+    camera.right = mat2.vec3.fromValues(-1 * Math.sin(camera.yaw), 3, Math.cos(camera.yaw));
+
+    console.log(camera.right);
+    var movementDirection = mat2.vec3.create();
+    if (isWPressed) {
+        mat2.vec3.scale(movementDirection, camera.direction, .1);
+        mat2.vec3.add(camera.position, camera.position, movementDirection);
+    }
+    if (isSPressed) {
+        mat2.vec3.scale(movementDirection, camera.direction, -.1);
+        mat2.vec3.add(camera.position, camera.position, movementDirection);
+    }
+    if (isAPressed) {
+        mat2.vec3.scale(movementDirection, camera.right, -.1);
+        mat2.vec3.add(camera.position, camera.position, movementDirection);
+    }
+    if (isDPressed) {
+        mat2.vec3.scale(movementDirection, camera.right, .1);
+        mat2.vec3.add(camera.position, camera.position, movementDirection);
+    }
+    // rotations
+    if (isGPressed) {
+        camera.yaw -=.02;
+    }
+    if (isJPressed) {
+        camera.yaw += .02;
+    }
+    if (isYPressed) {
+        camera.pitch += .02;
+    }
+    if (isHPressed) {
+        camera.pitch -= .02;
+    }
 }
