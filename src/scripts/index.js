@@ -8,322 +8,556 @@ if (process.env.NODE_ENV === 'development') {
 
 document.addEventListener("DOMContentLoaded", start);
 var gl;
-
+var ready = false;
+var light = { ambient: mat2.vec3.fromValues(1, 1, 1), position: mat2.vec3.fromValues(8, 0, -7) };
 function createCube() {
 
-  var cube = {};
+    var cube = {};
 
-  cube.vertices = [
-       -0.5, -0.5, -0.5,
-       0.5, -0.5, -0.5,
-       0.5, 0.5, -0.5,
-       0.5, 0.5, -0.5,
-      -0.5, 0.5, -0.5,
-      -0.5, -0.5, -0.5,
+    cube.vertices = [
+        -0.5, -0.5, -0.5,
+         0.5, -0.5, -0.5,
+         0.5, 0.5, -0.5,
+         0.5, 0.5, -0.5,
+        -0.5, 0.5, -0.5,
+        -0.5, -0.5, -0.5,
 
-      -0.5, -0.5, 0.5,
-       0.5, -0.5, 0.5,
-       0.5, 0.5, 0.5,
-       0.5, 0.5, 0.5,
-      -0.5, 0.5, 0.5,
-      -0.5, -0.5, 0.5,
+        -0.5, -0.5, 0.5,
+         0.5, -0.5, 0.5,
+         0.5, 0.5, 0.5,
+         0.5, 0.5, 0.5,
+        -0.5, 0.5, 0.5,
+        -0.5, -0.5, 0.5,
 
-      -0.5, 0.5, 0.5,
-      -0.5, 0.5, -0.5,
-      -0.5, -0.5, -0.5,
-      -0.5, -0.5, -0.5,
-      -0.5, -0.5, 0.5,
-      -0.5, 0.5, 0.5,
+        -0.5, 0.5, 0.5,
+        -0.5, 0.5, -0.5,
+        -0.5, -0.5, -0.5,
+        -0.5, -0.5, -0.5,
+        -0.5, -0.5, 0.5,
+        -0.5, 0.5, 0.5,
 
-       0.5, 0.5, 0.5,
-       0.5, 0.5, -0.5,
-       0.5, -0.5, -0.5,
-       0.5, -0.5, -0.5,
-       0.5, -0.5, 0.5,
-       0.5, 0.5, 0.5,
+         0.5, 0.5, 0.5,
+         0.5, 0.5, -0.5,
+         0.5, -0.5, -0.5,
+         0.5, -0.5, -0.5,
+         0.5, -0.5, 0.5,
+         0.5, 0.5, 0.5,
 
-      -0.5, -0.5, -0.5,
-       0.5, -0.5, -0.5,
-       0.5, -0.5, 0.5,
-       0.5, -0.5, 0.5,
-      -0.5, -0.5, 0.5,
-      -0.5, -0.5, -0.5,
+        -0.5, -0.5, -0.5,
+         0.5, -0.5, -0.5,
+         0.5, -0.5, 0.5,
+         0.5, -0.5, 0.5,
+        -0.5, -0.5, 0.5,
+        -0.5, -0.5, -0.5,
 
-      -0.5, 0.5, -0.5,
-       0.5, 0.5, -0.5,
-       0.5, 0.5, 0.5,
-       0.5, 0.5, 0.5,
-      -0.5, 0.5, 0.5,
-      -0.5, 0.5, -0.5
-  ];
-
-
-  cube.colors = [];
-
-  var faceColors = [
-      [1.0, 0.0, 0.0, 1.0], // Front face
-      [0.0, 1.0, 0.0, 1.0], // Back face
-      [0.0, 0.0, 1.0, 1.0], // Top face
-      [1.0, 1.0, 0.0, 1.0], // Bottom face
-      [1.0, 0.0, 1.0, 1.0], // Right face
-      [0.0, 1.0, 1.0, 1.0] // Left face
-  ];
-
-  faceColors.forEach(function (color) {
-      for (var i = 0 ; i < 6 ; i++) {
-          cube.colors = cube.colors.concat(color);
-      }
-  }
-  );
-
-  cube.textureCoordinates = [
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        0.0, 0.0,
-
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        0.0, 0.0,
-
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        0.0, 1.0,
-        0.0, 0.0,
-        1.0, 0.0,
-
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        0.0, 1.0,
-        0.0, 0.0,
-        1.0, 0.0,
-
-        0.0, 1.0,
-        1.0, 1.0,
-        1.0, 0.0,
-        1.0, 0.0,
-        0.0, 0.0,
-        0.0, 1.0,
-
-        0.0, 1.0,
-        1.0, 1.0,
-        1.0, 0.0,
-        1.0, 0.0,
-        0.0, 0.0,
-        0.0, 1.0
-  ];
-
-  cube.positionBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, cube.positionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.vertices), gl.STATIC_DRAW);
+        -0.5, 0.5, -0.5,
+         0.5, 0.5, -0.5,
+         0.5, 0.5, 0.5,
+         0.5, 0.5, 0.5,
+        -0.5, 0.5, 0.5,
+        -0.5, 0.5, -0.5
+    ];
 
 
+    cube.colors = [];
 
-  cube.colorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, cube.colorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.colors), gl.STATIC_DRAW);
+    var faceColors = [
+        [1.0, 0.0, 0.0, 1.0], // Front face
+        [0.0, 1.0, 0.0, 1.0], // Back face
+        [0.0, 0.0, 1.0, 1.0], // Top face
+        [1.0, 1.0, 0.0, 1.0], // Bottom face
+        [1.0, 0.0, 1.0, 1.0], // Right face
+        [0.0, 1.0, 1.0, 1.0] // Left face
+    ];
 
-  cube.textureCoordinatesBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, cube.textureCoordinatesBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.textureCoordinates), gl.STATIC_DRAW);
+    faceColors.forEach(function (color) {
+        for (var i = 0 ; i < 6 ; i++) {
+            cube.colors = cube.colors.concat(color);
+        }
+    }
+    );
 
-  cube.texture1 = gl.createTexture();
-  cube.texture1.image = new Image();
-  cube.texture1.image.src = "src/images/webgl-logo-256.jpg";
+    cube.textureCoordinates = [
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
 
-  cube.texture1.image.onload = function()
-  {
-      gl.bindTexture(gl.TEXTURE_2D, cube.texture1);
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-      //void gl.texImage2D(target, level, internalformat, format, type, HTMLImageElement? pixels);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, cube.texture1.image);
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
 
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+          1.0, 0.0,
+
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+          1.0, 0.0,
+
+          0.0, 1.0,
+          1.0, 1.0,
+          1.0, 0.0,
+          1.0, 0.0,
+          0.0, 0.0,
+          0.0, 1.0,
+
+          0.0, 1.0,
+          1.0, 1.0,
+          1.0, 0.0,
+          1.0, 0.0,
+          0.0, 0.0,
+          0.0, 1.0
+    ];
+
+    cube.vertexNormals = [
+
+          0.0,  0.0, -1.0,
+          0.0,  0.0, -1.0,
+          0.0,  0.0, -1.0,
+          0.0,  0.0, -1.0,
+          0.0,  0.0, -1.0,
+          0.0,  0.0, -1.0,
+
+          0.0,  0.0,  1.0,
+          0.0,  0.0,  1.0,
+          0.0,  0.0,  1.0,
+          0.0,  0.0,  1.0,
+          0.0,  0.0,  1.0,
+          0.0,  0.0,  1.0,
+
+         -1.0,  0.0,  0.0,
+         -1.0,  0.0,  0.0,
+         -1.0,  0.0,  0.0,
+         -1.0,  0.0,  0.0,
+         -1.0,  0.0,  0.0,
+         -1.0,  0.0,  0.0,
+
+          1.0,  0.0,  0.0,
+          1.0,  0.0,  0.0,
+          1.0,  0.0,  0.0,
+          1.0,  0.0,  0.0,
+          1.0,  0.0,  0.0,
+          1.0,  0.0,  0.0,
+
+          0.0, -1.0,  0.0,
+          0.0, -1.0,  0.0,
+          0.0, -1.0,  0.0,
+          0.0, -1.0,  0.0,
+          0.0, -1.0,  0.0,
+          0.0, -1.0,  0.0,
+
+          0.0,  1.0,  0.0,
+          0.0,  1.0,  0.0,
+          0.0,  1.0,  0.0,
+          0.0,  1.0,  0.0,
+          0.0,  1.0,  0.0,
+          0.0,  1.0,  0.0
+
+    ]
+
+    cube.positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, cube.positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.vertices), gl.STATIC_DRAW);
 
 
-      ready = true;
-  }
+
+    cube.colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, cube.colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.colors), gl.STATIC_DRAW);
+
+    cube.normalsBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, cube.normalsBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.vertexNormals), gl.STATIC_DRAW);
 
 
-  cube.texture2 = gl.createTexture();
-  cube.texture2.image = new Image();
-  cube.texture2.image.src = "src/images/StoreLogo.png";
+    cube.textureCoordinatesBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, cube.textureCoordinatesBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.textureCoordinates), gl.STATIC_DRAW);
 
-  cube.texture2.image.onload = function () {
-      gl.bindTexture(gl.TEXTURE_2D, cube.texture2);
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-      //void gl.texImage2D(target, level, internalformat, format, type, HTMLImageElement? pixels);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, cube.texture2.image);
+    cube.texture1 = gl.createTexture();
+    cube.texture1.image = new Image();
+    cube.texture1.image.src = "src/images/wood.jpg";
 
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    cube.texture1.image.onload = function()
+    {
+        gl.bindTexture(gl.TEXTURE_2D, cube.texture1);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        //void gl.texImage2D(target, level, internalformat, format, type, HTMLImageElement? pixels);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, cube.texture1.image);
 
-
-      TwoReady = true;
-  }
-
-
-
-  cube.vertexShader = getAndCompileShader("vertexShader");
-  cube.fragmentshader = getAndCompileShader("fragmentShader");
-  cube.shaderProgram = gl.createProgram();
-  gl.attachShader(cube.shaderProgram, cube.vertexShader);
-  gl.attachShader(cube.shaderProgram, cube.fragmentshader);
-  gl.linkProgram(cube.shaderProgram);
-
-  if (!gl.getProgramParameter(cube.shaderProgram, gl.LINK_STATUS)) {
-      alert("Could not link shaders");
-  }
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
 
-  cube.vao = gl.createVertexArray();
-  gl.bindVertexArray(cube.vao);
+        ready = true;
+    }
 
-  cube.positionAttributeLocation = gl.getAttribLocation(cube.shaderProgram, "position");
-  gl.enableVertexAttribArray(cube.positionAttributeLocation);
-  gl.bindBuffer(gl.ARRAY_BUFFER, cube.positionBuffer);
-  gl.vertexAttribPointer(cube.positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+    cube.texture2 = gl.createTexture();
+    cube.texture2.image = new Image();
+    cube.texture2.image.src = "src/images/StoreLogo.png";
+    cube.texture2.image.onload = function()
+    {
+        gl.bindTexture(gl.TEXTURE_2D, cube.texture2);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        //void gl.texImage2D(target, level, internalformat, format, type, HTMLImageElement? pixels);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, cube.texture2.image);
 
-  cube.colorAttributeLocation = gl.getAttribLocation(cube.shaderProgram, "color");
-  gl.enableVertexAttribArray(cube.colorAttributeLocation);
-  gl.bindBuffer(gl.ARRAY_BUFFER, cube.colorBuffer);
-  gl.vertexAttribPointer(cube.colorAttributeLocation, 4, gl.FLOAT, false, 0, 0);
-
-  cube.textureCoordinateAttributeLocation = gl.getAttribLocation(cube.shaderProgram, "textureCoordinate");
-  gl.enableVertexAttribArray(cube.textureCoordinateAttributeLocation);
-  gl.bindBuffer(gl.ARRAY_BUFFER, cube.textureCoordinatesBuffer);
-  gl.vertexAttribPointer(cube.textureCoordinateAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    }
 
 
-  cube.modelMatrix = mat2.mat4.create();
+    return cube;
+
+}
+
+function createObjectCubes(cube) {
+    var objectCube = {};
+    objectCube.vertexShader = getAndCompileShader("objectCubeVertexShader");
+    objectCube.fragmentshader = getAndCompileShader("objectCubeFragmentShader");
+    objectCube.shaderProgram = gl.createProgram();
+    gl.attachShader(objectCube.shaderProgram, objectCube.vertexShader);
+    gl.attachShader(objectCube.shaderProgram, objectCube.fragmentshader);
+    gl.linkProgram(objectCube.shaderProgram);
+
+    if (!gl.getProgramParameter(objectCube.shaderProgram, gl.LINK_STATUS)) {
+        alert("Could not link shaders");
+    }
+
+
+    objectCube.vao = gl.createVertexArray();
+    gl.bindVertexArray(objectCube.vao);
+
+    objectCube.positionAttributeLocation = gl.getAttribLocation(objectCube.shaderProgram, "position");
+    gl.enableVertexAttribArray(objectCube.positionAttributeLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, cube.positionBuffer);
+    gl.vertexAttribPointer(objectCube.positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+
+    objectCube.colorAttributeLocation = gl.getAttribLocation(objectCube.shaderProgram, "color");
+    gl.enableVertexAttribArray(objectCube.colorAttributeLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, cube.colorBuffer);
+    gl.vertexAttribPointer(objectCube.colorAttributeLocation, 4, gl.FLOAT, false, 0, 0);
+
+    objectCube.vertexNormalAttributeLocation = gl.getAttribLocation(objectCube.shaderProgram, "normal");
+    gl.enableVertexAttribArray(objectCube.vertexNormalAttributeLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, cube.normalsBuffer);
+    gl.vertexAttribPointer(objectCube.vertexNormalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+
+
+    objectCube.textureCoordinateAttributeLocation = gl.getAttribLocation(objectCube.shaderProgram, "textureCoordinate");
+    gl.enableVertexAttribArray(objectCube.textureCoordinateAttributeLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, cube.textureCoordinatesBuffer);
+    gl.vertexAttribPointer(objectCube.textureCoordinateAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+
+
+    objectCube.modelMatrix = mat2.mat4.create();
+
+    gl.useProgram(objectCube.shaderProgram);
+
+    objectCube.modelMatrixLocation = gl.getUniformLocation(objectCube.shaderProgram, "modelMatrix");
+
+    objectCube.samplerUniformLocation = gl.getUniformLocation(objectCube.shaderProgram, "sampler0");
+
+
+    gl.activeTexture(gl.TEXTURE0); // you have at least 8 textures possible
+    gl.bindTexture(gl.TEXTURE_2D, cube.texture1);
+    gl.uniform1i(objectCube.samplerUniformLocation, 0);
+
+
+    objectCube.samplerUniformLocation = gl.getUniformLocation(objectCube.shaderProgram, "sampler1");
+
+
+    gl.activeTexture(gl.TEXTURE1); // you have at least 8 textures possible
+    gl.bindTexture(gl.TEXTURE_2D, cube.texture2);
+    gl.uniform1i(objectCube.samplerUniformLocation, 1);
+
+    return objectCube;
+
+}
+
+function createLightCubes(cube) {
+    var lightCube = {};
+    lightCube.vertexShader = getAndCompileShader("lightCubeVertexShader");
+    lightCube.fragmentshader = getAndCompileShader("lightCubeFragmentShader");
+    lightCube.shaderProgram = gl.createProgram();
+    gl.attachShader(lightCube.shaderProgram, lightCube.vertexShader);
+    gl.attachShader(lightCube.shaderProgram, lightCube.fragmentshader);
+    gl.linkProgram(lightCube.shaderProgram);
+
+    if (!gl.getProgramParameter(lightCube.shaderProgram, gl.LINK_STATUS)) {
+        alert("Could not link shaders");
+    }
+
+
+    lightCube.vao = gl.createVertexArray();
+    gl.bindVertexArray(lightCube.vao);
+
+    lightCube.positionAttributeLocation = gl.getAttribLocation(lightCube.shaderProgram, "position");
+    gl.enableVertexAttribArray(lightCube.positionAttributeLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, cube.positionBuffer);
+    gl.vertexAttribPointer(lightCube.positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+
+
+    lightCube.modelMatrix = mat2.mat4.create();
+
+    gl.useProgram(lightCube.shaderProgram);
+
+    lightCube.modelMatrixLocation = gl.getUniformLocation(lightCube.shaderProgram, "modelMatrix");
+
+    return lightCube;
+
+}
+
+function start() {
+    var canvas = document.getElementById("canvas");
+    gl = canvas.getContext("webgl2", {alpha:false});
+
+    var cube = createCube();
+
+    var objectCube = createObjectCubes(cube);
+    var lightCube = createLightCubes(cube);
+
+    gl.useProgram(objectCube.shaderProgram);
+
+    var viewMatrix = mat2.mat4.create();
+    var projectionMatrix = mat2.mat4.create();
+    mat2.mat4.perspective(projectionMatrix, 45 * Math.PI / 180.0, canvas.width / canvas.height, 0.1, 100);
+    objectCube.viewMatrixLocation = gl.getUniformLocation(objectCube.shaderProgram, "viewMatrix");
+    objectCube.projectionMatrixLocation = gl.getUniformLocation(objectCube.shaderProgram, "projectionMatrix");
+    objectCube.lightColorAttributeLocation = gl.getUniformLocation(objectCube.shaderProgram, "lightColor");
+    objectCube.lightPositionAttributeLocation = gl.getUniformLocation(objectCube.shaderProgram, "lightPosition");
+    objectCube.cameraPositionAttributeLocation = gl.getUniformLocation(objectCube.shaderProgram, "cameraPosition");
+
+    lightCube.colorLocation = gl.getUniformLocation(lightCube.shaderProgram, "color");
+    lightCube.viewMatrixLocation = gl.getUniformLocation(lightCube.shaderProgram, "viewMatrix");
+    lightCube.projectionMatrixLocation = gl.getUniformLocation(lightCube.shaderProgram, "projectionMatrix");
+
+    var angle = 0;
+
+    var camera = {position: mat2.vec3.fromValues(0,0,0), direction:mat2.vec3.fromValues(0,0,-1) , pitch:0, yaw : -1*Math.PI/2.0};
+    
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    var time = 0;
+    function runRenderLoop() {
+        
+        requestAnimationFrame(runRenderLoop);
+        if (!ready) return;
+
+        gl.clearColor(0, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.enable(gl.DEPTH_TEST);
+
+        gl.useProgram(objectCube.shaderProgram);
+
+        moveCamera(camera);
+        var target = mat2.vec3.create();
+        mat2.vec3.add(target, camera.position, camera.direction);
+
+        mat2.mat4.lookAt(viewMatrix, camera.position, target, mat2.vec3.fromValues(0,1,0));
 
  
 
-  cube.modelMatrixLocation = gl.getUniformLocation(cube.shaderProgram, "modelMatrix");
-  cube.samplerUniformLocation = gl.getUniformLocation(cube.shaderProgram, "sampler0");
-  cube.samplerOneUniformLocation = gl.getUniformLocation(cube.shaderProgram, "sampler1");
+        mat2.mat4.identity(objectCube.modelMatrix);
 
-  gl.useProgram(cube.shaderProgram);
-  gl.activeTexture(gl.TEXTURE0); // you have at least 8 textures possible
-  gl.bindTexture(gl.TEXTURE_2D, cube.texture1);
-  gl.uniform1i(cube.samplerUniformLocation, 0);
+        mat2.mat4.translate(objectCube.modelMatrix, objectCube.modelMatrix, [4, 0, -7]);
+        mat2.mat4.rotateY(objectCube.modelMatrix, objectCube.modelMatrix, angle);
+        mat2.mat4.rotateX(objectCube.modelMatrix, objectCube.modelMatrix, .25);
+        mat2.mat4.scale(objectCube.modelMatrix, objectCube.modelMatrix, mat2.vec3.fromValues(2, 2, 2));
+
+        gl.uniform3fv(objectCube.lightColorAttributeLocation, light.ambient);
+        gl.uniform3fv(objectCube.lightPositionAttributeLocation, light.position);
+        gl.uniform3fv(objectCube.cameraPositionAttributeLocation, camera.position);
 
 
-  gl.activeTexture(gl.TEXTURE1); // you have at least 8 textures possible
-  gl.bindTexture(gl.TEXTURE_2D, cube.texture2);
-  gl.uniform1i(cube.samplerOneUniformLocation, 1);
+        gl.uniformMatrix4fv(objectCube.modelMatrixLocation, false, objectCube.modelMatrix);
+        gl.uniformMatrix4fv(objectCube.viewMatrixLocation, false, viewMatrix);
+        gl.uniformMatrix4fv(objectCube.projectionMatrixLocation, false, projectionMatrix);
 
-  return cube;
+        gl.useProgram(objectCube.shaderProgram);
+        gl.bindVertexArray(objectCube.vao);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 36);
+
+        mat2.mat4.identity(objectCube.modelMatrix);
+
+        mat2.mat4.translate(objectCube.modelMatrix, objectCube.modelMatrix, [0, 0, -7]);
+        mat2.mat4.rotateY(objectCube.modelMatrix, objectCube.modelMatrix, angle);
+        mat2.mat4.rotateX(objectCube.modelMatrix, objectCube.modelMatrix, .25);
+        mat2.mat4.scale(objectCube.modelMatrix, objectCube.modelMatrix, mat2.vec3.fromValues(2, 2, 2));
+
+        gl.uniformMatrix4fv(objectCube.modelMatrixLocation, false, objectCube.modelMatrix);
+        gl.drawArrays(gl.TRIANGLES, 0, 36);
+
+        mat2.mat4.identity(objectCube.modelMatrix);
+
+        mat2.mat4.translate(objectCube.modelMatrix, objectCube.modelMatrix, [-4, 0, -7]);
+        mat2.mat4.rotateY(objectCube.modelMatrix, objectCube.modelMatrix, angle * 2);
+        mat2.mat4.rotateX(objectCube.modelMatrix, objectCube.modelMatrix, angle / 5);
+        mat2.mat4.scale(objectCube.modelMatrix, objectCube.modelMatrix, mat2.vec3.fromValues(2, 2, 2));
+
+        gl.uniformMatrix4fv(objectCube.modelMatrixLocation, false, objectCube.modelMatrix);
+        gl.drawArrays(gl.TRIANGLES, 0, 36);
+
+
+        // light visualization
+
+        gl.useProgram(lightCube.shaderProgram);
+
+        mat2.mat4.identity(lightCube.modelMatrix);
+
+        //light.position[1] = 6 * Math.sin(.1 * (time + light.position[1]));
+        //light.position[0] = -6 * Math.sin(.1 * (time + light.position[0]));
+       
+        //time += .1;
+        mat2.mat4.translate(lightCube.modelMatrix, lightCube.modelMatrix, light.position);
+
+        mat2.mat4.scale(lightCube.modelMatrix, lightCube.modelMatrix, mat2.vec3.fromValues(.2, .2, .2));
+
+        gl.uniformMatrix4fv(lightCube.modelMatrixLocation, false, lightCube.modelMatrix);
+        gl.uniform3fv(lightCube.colorLocation, light.ambient);
+        gl.uniformMatrix4fv(lightCube.viewMatrixLocation, false, viewMatrix);
+        gl.uniformMatrix4fv(lightCube.projectionMatrixLocation, false, projectionMatrix);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 36);
+        
+    }
+
+    requestAnimationFrame(runRenderLoop);
+
 }
-
-function start(){
- 
-  console.log("Started");
-  var canvas = document.getElementById("canvas");
-  gl = canvas.getContext("webgl2");
-
-  var cube = createCube();
-
-  gl.useProgram(cube.shaderProgram);
-
-  var viewMatrix = mat2.mat4.create();
-  var projectionMatrix = mat2.mat4.create();
-
-  mat2.mat4.perspective(projectionMatrix, 45*Math.PI/180.0,canvas.width/canvas.height, 0.1, 10); 
-  
-  var viewMatrixLocation = gl.getUniformLocation(cube.shaderProgram, "viewMatrix");
-  var projectionMatrixLocation = gl.getUniformLocation(cube.shaderProgram, "projectionMatrix");
-
-  var angle = 0;
-
-  requestAnimationFrame(runRenderLoop);
-
-  function runRenderLoop() {
-      gl.clearColor(0, 0, 0, 1);
-      gl.clear(gl.COLOR_BUFFER_BIT || gl.DEPTH_BUFFER_BIT);
-      gl.enable(gl.DEPTH_TEST);
-
-      mat2.mat4.identity(cube.modelMatrix);
-      mat2.mat4.translate(cube.modelMatrix, cube.modelMatrix, [4, 0, -7]);
-      mat2.mat4.rotateY(cube.modelMatrix, cube.modelMatrix, angle);
-      mat2.mat4.rotateX(cube.modelMatrix, cube.modelMatrix, .25);
-      mat2.mat4.scale(cube.modelMatrix, cube.modelMatrix, mat2.vec3.fromValues(2,2,2));
-      // angle += .01;
-
-      gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
-      gl.uniformMatrix4fv(cube.modelMatrixLocation, false, cube.modelMatrix);
-      gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix);
-
-
-      gl.useProgram(cube.shaderProgram);
-      gl.bindVertexArray(cube.vao);
-      gl.drawArrays(gl.TRIANGLES, 0, 36);
-
-      mat2.mat4.identity(cube.modelMatrix);
-      mat2.mat4.translate(cube.modelMatrix, cube.modelMatrix, [0, 0, -7]);
-      mat2.mat4.rotateY(cube.modelMatrix, cube.modelMatrix, angle);
-      mat2.mat4.rotateX(cube.modelMatrix, cube.modelMatrix, .25);
-      mat2.mat4.scale(cube.modelMatrix, cube.modelMatrix, mat2.vec3.fromValues(2,2,2));
-
-      // angle += .01;
-
-      gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
-      gl.uniformMatrix4fv(cube.modelMatrixLocation, false, cube.modelMatrix);
-      gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix);
-
-
-      // gl.useProgram(cube.shaderProgram);
-      // gl.bindVertexArray(cube.vao);
-      gl.drawArrays(gl.TRIANGLES, 0, 36);
-
-      mat2.mat4.identity(cube.modelMatrix);
-      mat2.mat4.translate(cube.modelMatrix, cube.modelMatrix, [-4, 0, -7]);
-      mat2.mat4.rotateY(cube.modelMatrix, cube.modelMatrix, angle *2);
-      mat2.mat4.rotateX(cube.modelMatrix, cube.modelMatrix, angle / 5);
-      mat2.mat4.scale(cube.modelMatrix, cube.modelMatrix, mat2.vec3.fromValues(2,2,2));
-
-      // angle += .01;
-
-      gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
-      gl.uniformMatrix4fv(cube.modelMatrixLocation, false, cube.modelMatrix);
-      gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix);
-
-
-      // gl.useProgram(cube.shaderProgram);
-      // gl.bindVertexArray(cube.vao);
-      gl.drawArrays(gl.TRIANGLES, 0, 36);
-
-      requestAnimationFrame(runRenderLoop);
-
-  }
-}
-
 
 function getAndCompileShader(id) {
-var shader;
-var shaderElement = document.getElementById(id);
-var shaderText = shaderElement.textContent.trim();
+    var shader;
+    var shaderElement = document.getElementById(id);
+    var shaderText = shaderElement.text.trim();
+    if (shaderElement.type == "vertexShader")
+        shader = gl.createShader(gl.VERTEX_SHADER);
+    else if (shaderElement.type == "fragmentShader")
+        shader = gl.createShader(gl.FRAGMENT_SHADER);
 
-if(id == "vertexShader")
-    shader = gl.createShader(gl.VERTEX_SHADER);
-else if (id == "fragmentShader")  
-    shader = gl.createShader(gl.FRAGMENT_SHADER);  
-
-gl.shaderSource(shader, shaderText);
-gl.compileShader(shader);
-
-if(!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    alert(gl.getShaderInfoLog(shader));
-    return null;
+    gl.shaderSource(shader, shaderText);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        alert(gl.getShaderInfoLog(shader));
+        return null;
+    }
+    return shader;
 }
-return shader; 
 
+
+var isWPressed = false;
+var isSPressed = false;
+var isAPressed = false;
+var isDPressed = false;
+var isGPressed = false;
+var isJPressed = false;
+var isYPressed = false;
+var isHPressed = false;
+
+document.addEventListener("keydown", function (event) {
+    if (event.key == 'w') {
+        isWPressed = true;
+    }
+    if (event.key == 's') {
+        isSPressed = true;
+    }
+    if (event.key == 'a') {
+        isAPressed = true;
+    }
+    if (event.key == 'd') {
+        isDPressed = true;
+    }
+    if (event.key == 'g') {
+        isGPressed = true;
+    }
+    if (event.key == 'j') {
+        isJPressed = true;
+    }
+    if (event.key == 'y') {
+        isYPressed = true;
+    } if (event.key == 'h') {
+        isHPressed = true;
+    }
+}
+);
+
+document.addEventListener("keyup", function (event) {
+    if (event.key == 'w') {
+        isWPressed = false;
+    }
+    if (event.key == 's') {
+        isSPressed = false;
+    }
+    if (event.key == 'a') {
+        isAPressed = false;
+    }
+    if (event.key == 'd') {
+        isDPressed = false;
+    }
+    if (event.key == 'j') {
+        isJPressed = false;
+    }
+    if (event.key == 'g') {
+        isGPressed = false;
+    }
+    if (event.key == 'y') {
+        isYPressed = false;
+    }
+    if (event.key == 'h') {
+        isHPressed = false;
+    }
+});
+
+function moveCamera(camera) {
+    camera.direction[0] = Math.cos(camera.pitch) * Math.cos(camera.yaw);
+    camera.direction[1] = Math.sin(camera.pitch);
+    camera.direction[2] = Math.cos(camera.pitch) * Math.sin(camera.yaw);
+
+    camera.right = mat2.vec3.fromValues(-1 * Math.sin(camera.yaw), 0, Math.cos(camera.yaw));
+
+    //console.log(camera.right);
+    var movementDirection = mat2.vec3.create();
+    if (isWPressed) {
+        mat2.vec3.scale(movementDirection, camera.direction, .1);
+        mat2.vec3.add(camera.position, camera.position, movementDirection);
+    }
+    if (isSPressed) {
+        mat2.vec3.scale(movementDirection, camera.direction, -.1);
+        mat2.vec3.add(camera.position, camera.position, movementDirection);
+    }
+    if (isAPressed) {
+        mat2.vec3.scale(movementDirection, camera.right, -.1);
+        mat2.vec3.add(camera.position, camera.position, movementDirection);
+    }
+    if (isDPressed) {
+        mat2.vec3.scale(movementDirection, camera.right, .1);
+        mat2.vec3.add(camera.position, camera.position, movementDirection);
+    }
+    // rotations
+    if (isGPressed) {
+        camera.yaw -=.02;
+    }
+    if (isJPressed) {
+        camera.yaw += .02;
+    }
+    if (isYPressed) {
+        camera.pitch += .02;
+    }
+    if (isHPressed) {
+        camera.pitch -= .02;
+    }
 }
